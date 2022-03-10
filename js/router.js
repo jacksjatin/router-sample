@@ -1,5 +1,5 @@
-"use strict";
-import { match } from "./util.js";
+'use strict';
+import { match } from './util.js';
 
 export default class Router extends HTMLElement {
   /**
@@ -13,7 +13,7 @@ export default class Router extends HTMLElement {
    * </wc-router>
    */
   get outlet() {
-    return this.querySelector("wc-outlet");
+    return this.querySelector('wc-outlet');
   }
 
   get root() {
@@ -26,16 +26,16 @@ export default class Router extends HTMLElement {
    * title attribute to the wc-route tag
    */
   get routes() {
-    return Array.from(this.querySelectorAll("wc-route"))
+    return Array.from(this.querySelectorAll('wc-route'))
       .filter(node => node.parentNode === this)
       .map(r => ({
-        path: r.getAttribute("path"),
+        path: r.getAttribute('path'),
         // Optional: document title
-        title: r.getAttribute("title"),
+        title: r.getAttribute('title'),
         // name of the web component the should be displayed
-        component: r.getAttribute("component"),
+        component: r.getAttribute('component'),
         // Bundle path if lazy loading the component
-        resourceUrl: r.getAttribute("resourceUrl")
+        resourceUrl: r.getAttribute('resourceUrl'),
       }));
   }
 
@@ -43,15 +43,15 @@ export default class Router extends HTMLElement {
     this.updateLinks();
     this.navigate(window.location.pathname);
 
-    window.addEventListener("popstate", this._handlePopstate);
+    window.addEventListener('popstate', this._handlePopstate);
   }
 
   disconnectedCallback() {
-    window.removeEventListener("popstate", this._handlePopstate);
+    window.removeEventListener('popstate', this._handlePopstate);
   }
 
   _handlePopstate = () => {
-    this.navigate(window.location.pathname);
+    this.navigate(window.location.pathname, true);
   };
 
   updateLinks() {
@@ -62,9 +62,9 @@ export default class Router extends HTMLElement {
      * Add custom click event handler to prevent the default
      * behaviour and navigate to the registered route onclick.
      */
-    this.querySelectorAll("a[route]").forEach(link => {
-      const target = link.getAttribute("route");
-      link.setAttribute("href", target);
+    this.querySelectorAll('a[route]').forEach(link => {
+      const target = link.getAttribute('route');
+      link.setAttribute('href', target);
       link.onclick = e => {
         e.preventDefault();
         this.navigate(target);
@@ -72,11 +72,13 @@ export default class Router extends HTMLElement {
     });
   }
 
-  navigate(url) {
+  navigate(url, skip = false) {
     const matchedRoute = match(this.routes, url);
     if (matchedRoute !== null) {
       this.activeRoute = matchedRoute;
-      window.history.pushState(null, null, url);
+      if (!skip) {
+        window.history.pushState(null, null, url);
+      }
       this.update();
     }
   }
@@ -86,12 +88,7 @@ export default class Router extends HTMLElement {
    * selected route.
    */
   update() {
-    const {
-      component,
-      title,
-      params = {},
-      resourceUrl = null
-    } = this.activeRoute;
+    const { component, title, params = {}, resourceUrl = null } = this.activeRoute;
 
     if (component) {
       // Remove all child nodes under outlet element
@@ -108,7 +105,7 @@ export default class Router extends HTMLElement {
            * as the attribute to the newly created element
            * except * value.
            */
-          if (key !== "*") view.setAttribute(key, params[key]);
+          if (key !== '*') view.setAttribute(key, params[key]);
         }
 
         this.outlet.appendChild(view);
@@ -133,4 +130,4 @@ export default class Router extends HTMLElement {
   }
 }
 
-customElements.define("wc-router", Router);
+customElements.define('wc-router', Router);
